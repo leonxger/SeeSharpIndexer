@@ -47,5 +47,31 @@ public partial class MainWindow : Window
                 e.Handled = true;
             }
         }
+        
+        // Handle Escape key to close application
+        if (e.Key == Key.Escape)
+        {
+            Close();
+        }
+    }
+    
+    // Allow dragging the window by clicking anywhere on the title bar
+    private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ButtonState == MouseButtonState.Pressed)
+        {
+            DragMove();
+        }
+    }
+    
+    // Close button click handler
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+
     }
 }

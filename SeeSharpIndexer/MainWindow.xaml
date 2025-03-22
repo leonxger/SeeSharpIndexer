@@ -16,7 +16,11 @@
         FontFamily="{materialDesign:MaterialDesignFont}"
         Title="SeeSharp Indexer" Height="700" Width="1000"
         MinHeight="600" MinWidth="800"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        materialDesign:ElevationAssist.Elevation="Dp4"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
     
     <Window.DataContext>
         <viewmodels:MainViewModel />
@@ -31,8 +35,8 @@
             </Grid.RowDefinitions>
 
             <!-- App Bar -->
-            <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryDark" Padding="16" 
-                                      materialDesign:ElevationAssist.Elevation="Dp2"
+            <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="16" 
+                                      materialDesign:ElevationAssist.Elevation="Dp3"
                                       VerticalAlignment="Stretch">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -49,8 +53,21 @@
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Style="{StaticResource MaterialDesignIconForegroundButton}"
                                 ToolTip="Settings"
-                                Command="{Binding ToggleSettingsCommand}">
+                                Command="{Binding ToggleSettingsCommand}"
+                                materialDesign:ElevationAssist.Elevation="Dp2"
+                                materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="0,0,0,0">
                             <materialDesign:PackIcon Kind="Settings" Width="24" Height="24"/>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignIconForegroundButton}"
+                                ToolTip="Close"
+                                Click="CloseButton_Click"
+                                materialDesign:ElevationAssist.Elevation="Dp2"
+                                materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                materialDesign:ButtonAssist.CornerRadius="4"
+                                Margin="8 0 0 0">
+                            <materialDesign:PackIcon Kind="Close" Width="24" Height="24"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -65,7 +82,8 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- File List -->
-                <materialDesign:Card Grid.Column="0" Padding="8" materialDesign:ElevationAssist.Elevation="Dp1">
+                <materialDesign:Card Grid.Column="0" Padding="8" materialDesign:ElevationAssist.Elevation="Dp2" 
+                                   materialDesign:ShadowAssist.ShadowDepth="Depth1" Margin="0 0 8 0">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -73,7 +91,7 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <materialDesign:ColorZone Mode="PrimaryLight" Padding="8" Grid.Row="0" CornerRadius="4" Margin="0 0 0 8">
+                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="8" Grid.Row="0" Margin="0 0 0 8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -85,25 +103,41 @@
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
                                     <Button Style="{StaticResource ActionIconButtonStyle}"
                                             Command="{Binding AddFilesCommand}"
-                                            ToolTip="Add Files">
+                                            ToolTip="Add Files"
+                                            materialDesign:ElevationAssist.Elevation="Dp2"
+                                            materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                            materialDesign:ButtonAssist.CornerRadius="4"
+                                            Margin="4,0,4,0">
                                         <materialDesign:PackIcon Kind="FileMultiple" Width="20" Height="20"/>
                                     </Button>
                                     
                                     <Button Style="{StaticResource ActionIconButtonStyle}"
                                             Command="{Binding AddDirectoryCommand}"
-                                            ToolTip="Add Directory">
+                                            ToolTip="Add Directory"
+                                            materialDesign:ElevationAssist.Elevation="Dp2"
+                                            materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                            materialDesign:ButtonAssist.CornerRadius="4"
+                                            Margin="4,0,4,0">
                                         <materialDesign:PackIcon Kind="FolderPlus" Width="20" Height="20"/>
                                     </Button>
                                     
                                     <Button Style="{StaticResource ActionIconButtonStyle}"
                                             Command="{Binding RemoveFilesCommand}"
-                                            ToolTip="Remove Selected">
+                                            ToolTip="Remove Selected"
+                                            materialDesign:ElevationAssist.Elevation="Dp2"
+                                            materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                            materialDesign:ButtonAssist.CornerRadius="4"
+                                            Margin="4,0,4,0">
                                         <materialDesign:PackIcon Kind="FileRemove" Width="20" Height="20"/>
                                     </Button>
                                     
                                     <Button Style="{StaticResource ActionIconButtonStyle}"
                                             Command="{Binding ClearFilesCommand}"
-                                            ToolTip="Clear All">
+                                            ToolTip="Clear All"
+                                            materialDesign:ElevationAssist.Elevation="Dp2"
+                                            materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                            materialDesign:ButtonAssist.CornerRadius="4"
+                                            Margin="4,0,0,0">
                                         <materialDesign:PackIcon Kind="Broom" Width="20" Height="20"/>
                                     </Button>
                                 </StackPanel>
@@ -145,7 +179,7 @@
                                    Foreground="{DynamicResource MaterialDesignBodyLight}"
                                    Visibility="{Binding Files.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=0}"/>
 
-                        <materialDesign:ColorZone Grid.Row="2" Mode="Standard" Padding="8" CornerRadius="4" Margin="0 8 0 0">
+                        <materialDesign:ColorZone Grid.Row="2" Mode="Standard" Padding="8" Margin="0 8 0 0">
                             <TextBlock Text="{Binding Files.Count, StringFormat='{}{0} files'}" 
                                        VerticalAlignment="Center"
                                        FontWeight="Medium"/>
@@ -157,7 +191,8 @@
                               VerticalAlignment="Stretch" Background="Transparent"/>
 
                 <!-- Right Panel (Settings or Details) -->
-                <materialDesign:Card Grid.Column="2" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1">
+                <materialDesign:Card Grid.Column="2" Padding="16" materialDesign:ElevationAssist.Elevation="Dp2" 
+                                   materialDesign:ShadowAssist.ShadowDepth="Depth1" Margin="8 0 0 0">
                     <Grid>
                         <!-- Settings Panel -->
                         <Grid Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -166,13 +201,13 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <materialDesign:ColorZone Mode="PrimaryLight" Padding="8" CornerRadius="4" Margin="0 0 0 16">
+                            <materialDesign:ColorZone Mode="PrimaryMid" Padding="8" Margin="0 0 0 16">
                                 <TextBlock Text="Settings" Style="{StaticResource HeaderTextStyle}"/>
                             </materialDesign:ColorZone>
 
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <materialDesign:Card Margin="0 0 0 16" Padding="16">
+                                    <materialDesign:Card Margin="0 0 0 16" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1">
                                         <StackPanel>
                                             <TextBlock Text="Indexing Options" Style="{StaticResource SubHeaderTextStyle}" Margin="0 0 0 8"/>
                                             
@@ -194,7 +229,7 @@
                                         </StackPanel>
                                     </materialDesign:Card>
 
-                                    <materialDesign:Card Margin="0 0 0 16" Padding="16">
+                                    <materialDesign:Card Margin="0 0 0 16" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1">
                                         <StackPanel>
                                             <TextBlock Text="Output Options" Style="{StaticResource SubHeaderTextStyle}" Margin="0 0 0 8"/>
                                             
@@ -215,21 +250,23 @@
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <materialDesign:ColorZone Mode="PrimaryLight" Padding="8" CornerRadius="4" Margin="0 0 0 16">
+                            <materialDesign:ColorZone Mode="PrimaryMid" Padding="8" Margin="0 0 0 16">
                                 <TextBlock Text="Index Details" Style="{StaticResource HeaderTextStyle}"/>
                             </materialDesign:ColorZone>
 
                             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <materialDesign:Card Margin="0 0 0 16" Padding="16">
+                                    <materialDesign:Card Margin="0 0 0 16" Padding="16" materialDesign:ElevationAssist.Elevation="Dp1">
                                         <StackPanel>
                                             <TextBlock Text="Codebase Information" Style="{StaticResource SubHeaderTextStyle}" Margin="0 0 0 8"/>
                                             
                                             <TextBox materialDesign:HintAssist.Hint="Codebase Name"
+                                                    Foreground="{DynamicResource MaterialDesignBodyLight}"
                                                     Text="{Binding CodebaseName}"
                                                     Margin="0 8 0 0"/>
                                             
                                             <TextBox materialDesign:HintAssist.Hint="Description"
+                                                    Foreground="{DynamicResource MaterialDesignBodyLight}"
                                                     Text="{Binding CodebaseDescription}"
                                                     TextWrapping="Wrap"
                                                     AcceptsReturn="True"
@@ -241,34 +278,64 @@
                                 </StackPanel>
                             </ScrollViewer>
 
-                            <materialDesign:Card Grid.Row="2" Margin="0 8 0 0" Padding="8" Background="{DynamicResource MaterialDesignBackground}">
-                                <UniformGrid Rows="2" Columns="2" Margin="8">
-                                    <Button Style="{StaticResource ActionButtonStyle}"
-                                            Command="{Binding ScanCommand}"
-                                            IsEnabled="{Binding IsScanning, Converter={StaticResource InverseBooleanConverter}}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <materialDesign:PackIcon Kind="Scanner" Margin="0 0 8 0"/>
-                                            <TextBlock Text="Scan Files"/>
-                                        </StackPanel>
-                                    </Button>
+                            <materialDesign:Card Grid.Row="2" Margin="0 16 0 0" Padding="16" 
+                                               Background="#1E1E2D" 
+                                               materialDesign:ElevationAssist.Elevation="Dp2"
+                                               materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                                               UniformCornerRadius="12">
+                                <StackPanel Margin="4">
+                                    <Grid Margin="0 6 0 8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
                                     
-                                    <Button Style="{StaticResource ActionButtonStyle}"
-                                            Command="{Binding SaveIndexCommand}">
-                                        <StackPanel Orientation="Horizontal">
-                                            <materialDesign:PackIcon Kind="ContentSave" Margin="0 0 8 0"/>
-                                            <TextBlock Text="Save Index"/>
-                                        </StackPanel>
-                                    </Button>
+                                        <Button Style="{StaticResource SecondaryActionButtonStyle}"
+                                                materialDesign:ElevationAssist.Elevation="Dp3"
+                                                materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                                Command="{Binding ScanCommand}"
+                                                Grid.Column="0"
+                                                Margin="4 0 8 0"
+                                                materialDesign:ButtonAssist.CornerRadius="4"
+                                                BorderThickness="1"
+                                                BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                                IsEnabled="{Binding IsScanning, Converter={StaticResource InverseBooleanConverter}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Scanner" Width="18" Height="18" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Scan" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                        
+                                        <Button Style="{StaticResource SecondaryActionButtonStyle}"
+                                                materialDesign:ElevationAssist.Elevation="Dp3"
+                                                materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                                Command="{Binding SaveIndexCommand}"
+                                                Grid.Column="1"
+                                                Margin="8 0 4 0"
+                                                BorderThickness="1"
+                                                BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                                materialDesign:ButtonAssist.CornerRadius="4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="ContentSave" Width="18" Height="18" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Save" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
                                     
-                                    <Button Style="{StaticResource ActionButtonStyle}"
+                                    <Button Style="{StaticResource PrimaryActionButtonStyle}"
+                                            materialDesign:ElevationAssist.Elevation="Dp4"
+                                            materialDesign:ShadowAssist.ShadowDepth="Depth3"
                                             Command="{Binding LoadIndexCommand}"
-                                            Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+                                            Margin="4 8 4 6"
+                                            BorderThickness="1"
+                                            BorderBrush="{DynamicResource PrimaryHueMidBrush}"
+                                            materialDesign:ButtonAssist.CornerRadius="4">
                                         <StackPanel Orientation="Horizontal">
-                                            <materialDesign:PackIcon Kind="FolderOpen" Margin="0 0 8 0"/>
-                                            <TextBlock Text="Load Index"/>
+                                            <materialDesign:PackIcon Kind="FolderOpen" Width="20" Height="20" Margin="0 0 8 0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Load Index" FontWeight="Medium" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
-                                </UniformGrid>
+                                </StackPanel>
                             </materialDesign:Card>
                         </Grid>
                     </Grid>
@@ -276,7 +343,7 @@
             </Grid>
 
             <!-- Status Bar -->
-            <materialDesign:ColorZone Grid.Row="2" Mode="Standard" Padding="12">
+            <materialDesign:ColorZone Grid.Row="2" Mode="PrimaryLight" Padding="12" materialDesign:ElevationAssist.Elevation="Dp1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -298,7 +365,7 @@
             <Grid Grid.RowSpan="3" Background="#80000000" 
                   Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <materialDesign:Card VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24" 
-                                     materialDesign:ElevationAssist.Elevation="Dp3">
+                                     materialDesign:ElevationAssist.Elevation="Dp4">
                     <StackPanel>
                         <materialDesign:Badged Badge="{materialDesign:PackIcon Kind=CodeJson}" 
                                             BadgeBackground="{DynamicResource PrimaryHueDarkBrush}"

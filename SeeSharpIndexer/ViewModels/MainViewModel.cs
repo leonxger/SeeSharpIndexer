@@ -399,6 +399,13 @@ namespace SeeSharpIndexer.ViewModels
 
                 StatusMessage = "Scanning files...";
                 _currentIndex = await _indexerService.CreateIndexAsync(filePaths, CodebaseName, CodebaseDescription);
+                
+                // Make sure all files in the index have IsSelected = true
+                foreach (var file in _currentIndex.Files)
+                {
+                    file.IsSelected = true;
+                }
+                
                 StatusMessage = $"Scanning complete. Processed {_currentIndex.Files.Count} files.";
             }
             catch (Exception ex)
@@ -423,6 +430,13 @@ namespace SeeSharpIndexer.ViewModels
                 System.Windows.MessageBox.Show("No index available to save. Please scan files first.", "Information", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 return;
             }
+
+            // Update the index with current name and description
+            _currentIndex.Name = CodebaseName;
+            _currentIndex.Description = CodebaseDescription;
+            
+            // Filter out files that are not selected
+            _currentIndex.Files = _currentIndex.Files.Where(f => f.IsSelected).ToList();
 
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
@@ -503,7 +517,14 @@ namespace SeeSharpIndexer.ViewModels
                     
                     foreach (var file in _currentIndex.Files)
                     {
-                        Files.Add(file);
+                        // Create a new FileItem with the IsSelected property from the loaded file
+                        var newFileItem = new FileItem(file.FilePath, file.IsSelected)
+                        {
+                            Classes = file.Classes,
+                            Enums = file.Enums,
+                            Interfaces = file.Interfaces
+                        };
+                        Files.Add(newFileItem);
                     }
 
                     StatusMessage = $"Index loaded from {dialog.FileName}";

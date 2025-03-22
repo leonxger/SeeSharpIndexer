@@ -4,9 +4,287 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeeSharpIndexer"
+        xmlns:viewmodels="clr-namespace:SeeSharpIndexer.ViewModels"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        Title="SeeSharp Indexer" Height="700" Width="1000"
+        MinHeight="600" MinWidth="800"
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.DataContext>
+        <viewmodels:MainViewModel />
+    </Window.DataContext>
+    
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-    </Grid>
+            <!-- App Bar -->
+            <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryDark" Padding="16" 
+                                      materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                      VerticalAlignment="Stretch">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="CodeJson" Width="24" Height="24" VerticalAlignment="Center"/>
+                        <TextBlock Text="SeeSharp Indexer" VerticalAlignment="Center" Margin="16 0 0 0" FontSize="20"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                ToolTip="Settings"
+                                Command="{Binding ToggleSettingsCommand}">
+                            <materialDesign:PackIcon Kind="Settings" Width="24" Height="24"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:ColorZone>
+
+            <!-- Main Content -->
+            <Grid Grid.Row="1" Margin="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="350"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- File List -->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 0 0 8">
+                        <TextBlock Text="Files" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="8 0 0 0"
+                                Command="{Binding AddFilesCommand}"
+                                ToolTip="Add Files">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FileMultiple" Margin="0 0 8 0"/>
+                                <TextBlock Text="Add Files"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="8 0 0 0"
+                                Command="{Binding AddDirectoryCommand}"
+                                ToolTip="Add Directory">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FolderMultiple" Margin="0 0 8 0"/>
+                                <TextBlock Text="Add Directory"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="8 0 0 0"
+                                Command="{Binding RemoveFilesCommand}"
+                                ToolTip="Remove Selected">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Delete" Margin="0 0 8 0"/>
+                                <TextBlock Text="Remove"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                Margin="8 0 0 0"
+                                Command="{Binding ClearFilesCommand}"
+                                ToolTip="Clear All">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Broom" Margin="0 0 8 0"/>
+                                <TextBlock Text="Clear All"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <ListView Grid.Row="1" 
+                              ItemsSource="{Binding Files}"
+                              SelectedValue="{Binding SelectedFilePath}"
+                              SelectedValuePath="FilePath"
+                              BorderThickness="1"
+                              BorderBrush="{DynamicResource MaterialDesignDivider}">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Include" Width="70">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                                <GridViewColumn Header="Name" Width="250"
+                                                DisplayMemberBinding="{Binding Name}"/>
+                                <GridViewColumn Header="Path" Width="Auto">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding FilePath}" 
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <TextBlock Grid.Row="1" Text="No files added. Add files or a directory to get started."
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource MaterialDesignBodyLight}"
+                               Visibility="{Binding Files.Count, Converter={StaticResource CountToVisibilityConverter}, ConverterParameter=0}"/>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0 8 0 0">
+                        <TextBlock Text="{Binding Files.Count, StringFormat='{}{0} files'}" 
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+
+                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" 
+                              VerticalAlignment="Stretch" Background="Transparent"/>
+
+                <!-- Right Panel (Settings or Details) -->
+                <Grid Grid.Column="2">
+                    <!-- Settings Panel -->
+                    <Grid Visibility="{Binding IsSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Settings" FontWeight="Bold" FontSize="16" Margin="0 0 0 16"/>
+
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <materialDesign:Card Margin="0 0 0 16" Padding="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Indexing Options" FontWeight="Bold" Margin="0 0 0 8"/>
+                                        
+                                        <CheckBox Content="Include private members"
+                                                  IsChecked="{Binding IncludePrivateMembers}"
+                                                  Margin="0 8 0 0"/>
+                                        
+                                        <CheckBox Content="Include internal members"
+                                                  IsChecked="{Binding IncludeInternalMembers}"
+                                                  Margin="0 8 0 0"/>
+                                        
+                                        <CheckBox Content="Include protected members"
+                                                  IsChecked="{Binding IncludeProtectedMembers}"
+                                                  Margin="0 8 0 0"/>
+                                        
+                                        <CheckBox Content="Include fields"
+                                                  IsChecked="{Binding IncludeFields}"
+                                                  Margin="0 8 0 0"/>
+                                    </StackPanel>
+                                </materialDesign:Card>
+
+                                <materialDesign:Card Margin="0 0 0 16" Padding="16">
+                                    <StackPanel>
+                                        <TextBlock Text="Output Options" FontWeight="Bold" Margin="0 0 0 8"/>
+                                        
+                                        <CheckBox Content="Compress output JSON"
+                                                  IsChecked="{Binding CompressOutput}"
+                                                  Margin="0 8 0 0"/>
+                                    </StackPanel>
+                                </materialDesign:Card>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Details Panel -->
+                    <Grid Visibility="{Binding IsSettingsOpen, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Index Details" FontWeight="Bold" FontSize="16" Margin="0 0 0 16"/>
+
+                        <StackPanel Grid.Row="1">
+                            <materialDesign:Card Margin="0 0 0 16" Padding="16">
+                                <StackPanel>
+                                    <TextBlock Text="Codebase Information" FontWeight="Bold" Margin="0 0 0 8"/>
+                                    
+                                    <TextBox materialDesign:HintAssist.Hint="Codebase Name"
+                                             Text="{Binding CodebaseName}"
+                                             Margin="0 8 0 0"/>
+                                    
+                                    <TextBox materialDesign:HintAssist.Hint="Description"
+                                             Text="{Binding CodebaseDescription}"
+                                             TextWrapping="Wrap"
+                                             AcceptsReturn="True"
+                                             VerticalScrollBarVisibility="Auto"
+                                             Height="80"
+                                             Margin="0 16 0 0"/>
+                                </StackPanel>
+                            </materialDesign:Card>
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                        Command="{Binding ScanCommand}"
+                                        IsEnabled="{Binding IsScanning, Converter={StaticResource InverseBooleanConverter}}"
+                                        Margin="0 0 8 0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Scanner" Margin="0 0 8 0"/>
+                                        <TextBlock Text="Scan Files"/>
+                                    </StackPanel>
+                                </Button>
+                                
+                                <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Command="{Binding SaveIndexCommand}"
+                                        Margin="8 0 0 0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="ContentSave" Margin="0 0 8 0"/>
+                                        <TextBlock Text="Save Index"/>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <Button Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Command="{Binding LoadIndexCommand}"
+                                    Margin="0 8 0 0"
+                                    HorizontalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="FolderOpen" Margin="0 0 8 0"/>
+                                    <TextBlock Text="Load Index"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- Status Bar -->
+            <materialDesign:ColorZone Grid.Row="2" Mode="Standard" Padding="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" VerticalAlignment="Center"/>
+                    
+                    <ProgressBar Grid.Column="1" Width="100" Height="8" 
+                                 Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                 Value="{Binding ProgressValue}"
+                                 Maximum="100"
+                                 Margin="8 0 0 0"/>
+                </Grid>
+            </materialDesign:ColorZone>
+        </Grid>
+    </materialDesign:DialogHost>
 </Window>

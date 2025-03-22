@@ -27,6 +27,22 @@ namespace SeeSharpIndexer.Helpers
         }
 
         /// <summary>
+        /// Creates a new relay command that can always execute (parameterless version)
+        /// </summary>
+        public RelayCommand(Action execute)
+            : this(_ => execute(), null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new relay command with a parameterless can-execute function
+        /// </summary>
+        public RelayCommand(Action execute, Func<bool> canExecute)
+            : this(_ => execute(), _ => canExecute())
+        {
+        }
+
+        /// <summary>
         /// Creates a new relay command with a can-execute predicate
         /// </summary>
         public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute)

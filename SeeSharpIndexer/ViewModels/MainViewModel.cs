@@ -29,6 +29,7 @@ namespace SeeSharpIndexer.ViewModels
         private string _codebaseDescription = string.Empty;
         private CodebaseIndex? _currentIndex;
         private string? _selectedFilePath;
+        private string _currentProcessingFileName = string.Empty;
 
         #region Properties
 
@@ -71,6 +72,15 @@ namespace SeeSharpIndexer.ViewModels
         {
             get => _statusMessage;
             set => SetProperty(ref _statusMessage, value);
+        }
+
+        /// <summary>
+        /// The current file being processed
+        /// </summary>
+        public string CurrentProcessingFileName
+        {
+            get => _currentProcessingFileName;
+            set => SetProperty(ref _currentProcessingFileName, value);
         }
 
         /// <summary>
@@ -205,7 +215,7 @@ namespace SeeSharpIndexer.ViewModels
         public ICommand RemoveFilesCommand { get; }
 
         /// <summary>
-        /// Command to start the scanning process
+        /// Command to scan the files and create an index
         /// </summary>
         public ICommand ScanCommand { get; }
 
@@ -225,7 +235,7 @@ namespace SeeSharpIndexer.ViewModels
         public ICommand ToggleSettingsCommand { get; }
 
         /// <summary>
-        /// Command to clear all files
+        /// Command to clear all files from the project
         /// </summary>
         public ICommand ClearFilesCommand { get; }
 
@@ -239,19 +249,24 @@ namespace SeeSharpIndexer.ViewModels
             _settings = IndexerSettings.Load();
             _indexerService = new IndexerService(_settings);
 
-            // Subscribe to events
             _indexerService.FileProcessed += OnFileProcessed;
             _indexerService.ProgressUpdated += OnProgressUpdated;
 
-            // Initialize commands
-            AddFilesCommand = new RelayCommand(_ => AddFiles());
-            AddDirectoryCommand = new RelayCommand(_ => AddDirectory());
-            RemoveFilesCommand = new RelayCommand(_ => RemoveSelectedFiles(), _ => SelectedFilePath != null);
-            ScanCommand = new RelayCommand(_ => ScanAsync().ConfigureAwait(false), _ => CanScan());
-            SaveIndexCommand = new RelayCommand(_ => SaveIndex(), _ => _currentIndex != null);
-            LoadIndexCommand = new RelayCommand(_ => LoadIndex());
-            ToggleSettingsCommand = new RelayCommand(_ => IsSettingsOpen = !IsSettingsOpen);
-            ClearFilesCommand = new RelayCommand(_ => ClearFiles(), _ => Files.Count > 0);
+            // Set up commands
+            AddFilesCommand = new RelayCommand(AddFiles);
+            AddDirectoryCommand = new RelayCommand(AddDirectory);
+            RemoveFilesCommand = new RelayCommand(RemoveSelectedFiles, () => SelectedFilePath != null);
+            ScanCommand = new RelayCommand(async () => await ScanAsync(), () => CanScan());
+            SaveIndexCommand = new RelayCommand(SaveIndex, () => _currentIndex != null);
+            LoadIndexCommand = new RelayCommand(LoadIndex);
+            ToggleSettingsCommand = new RelayCommand(() => IsSettingsOpen = !IsSettingsOpen);
+            ClearFilesCommand = new RelayCommand(ClearFiles, () => Files.Count > 0);
+
+            // Ensure commands are always accessible
+            System.Windows.Application.Current.Dispatcher.ShutdownStarted += (s, e) => {
+                _indexerService.FileProcessed -= OnFileProcessed;
+                _indexerService.ProgressUpdated -= OnProgressUpdated;
+            };
         }
 
         /// <summary>
@@ -262,33 +277,31 @@ namespace SeeSharpIndexer.ViewModels
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "C# Files (*.cs)|*.cs|All Files (*.*)|*.*",
-                Multiselect = true,
                 Title = "Select C# Files",
-                InitialDirectory = !string.IsNullOrEmpty(_settings.LastOpenDirectory) 
-                    ? _settings.LastOpenDirectory 
+                Multiselect = true,
+                InitialDirectory = !string.IsNullOrEmpty(_settings.LastOpenDirectory)
+                    ? _settings.LastOpenDirectory
                     : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
 
             if (dialog.ShowDialog() == true)
             {
-                _settings.LastOpenDirectory = Path.GetDirectoryName(dialog.FileNames[0]) ?? string.Empty;
+                _settings.LastOpenDirectory = Path.GetDirectoryName(dialog.FileName) ?? string.Empty;
                 _settings.Save();
 
-                foreach (var filePath in dialog.FileNames)
+                var filePaths = dialog.FileNames;
+                var addedCount = 0;
+
+                foreach (var filePath in filePaths)
                 {
-                    if (!Files.Any(f => f.FilePath == filePath))
-                    {
-                        var fileItem = new FileItem
-                        {
-                            Name = Path.GetFileName(filePath),
-                            FilePath = filePath,
-                            Location = filePath
-                        };
-                        Files.Add(fileItem);
-                    }
+                    if (Files.Any(f => f.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+
+                    Files.Add(new FileItem(filePath, true));
+                    addedCount++;
                 }
 
-                StatusMessage = $"Added {dialog.FileNames.Length} file(s)";
+                StatusMessage = $"Added {addedCount} file(s).";
             }
         }
 
@@ -299,45 +312,37 @@ namespace SeeSharpIndexer.ViewModels
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                Description = "Select a directory containing C# files",
+                Description = "Select a folder containing C# files",
                 ShowNewFolderButton = false
             };
 
-            if (!string.IsNullOrEmpty(_settings.LastOpenDirectory))
+            if (!string.IsNullOrEmpty(_settings.LastOpenDirectory) && Directory.Exists(_settings.LastOpenDirectory))
+            {
                 dialog.InitialDirectory = _settings.LastOpenDirectory;
+            }
+            else
+            {
+                dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
 
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 _settings.LastOpenDirectory = dialog.SelectedPath;
                 _settings.Save();
 
-                try
-                {
-                    var files = _indexerService.GetCSharpFilesFromDirectory(dialog.SelectedPath, true);
-                    int addedCount = 0;
+                var filePaths = Directory.GetFiles(dialog.SelectedPath, "*.cs", SearchOption.AllDirectories);
+                var addedCount = 0;
 
-                    foreach (var filePath in files)
-                    {
-                        if (!Files.Any(f => f.FilePath == filePath))
-                        {
-                            var fileItem = new FileItem
-                            {
-                                Name = Path.GetFileName(filePath),
-                                FilePath = filePath,
-                                Location = filePath
-                            };
-                            Files.Add(fileItem);
-                            addedCount++;
-                        }
-                    }
-
-                    StatusMessage = $"Added {addedCount} file(s) from directory";
-                }
-                catch (Exception ex)
+                foreach (var filePath in filePaths)
                 {
-                    StatusMessage = $"Error: {ex.Message}";
-                    System.Windows.MessageBox.Show(ex.Message, "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    if (Files.Any(f => f.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+
+                    Files.Add(new FileItem(filePath, true));
+                    addedCount++;
                 }
+
+                StatusMessage = $"Added {addedCount} file(s) from directory.";
             }
         }
 
@@ -349,13 +354,14 @@ namespace SeeSharpIndexer.ViewModels
             if (string.IsNullOrEmpty(SelectedFilePath))
                 return;
 
-            var itemsToRemove = Files.Where(f => f.FilePath == SelectedFilePath).ToList();
-            foreach (var item in itemsToRemove)
+            var selectedItems = Files.Where(f => f.FilePath == SelectedFilePath).ToList();
+            foreach (var item in selectedItems)
             {
                 Files.Remove(item);
             }
 
-            StatusMessage = $"Removed {itemsToRemove.Count} file(s)";
+            SelectedFilePath = null;
+            StatusMessage = "Removed selected file(s).";
         }
 
         /// <summary>
@@ -364,7 +370,8 @@ namespace SeeSharpIndexer.ViewModels
         private void ClearFiles()
         {
             Files.Clear();
-            StatusMessage = "Cleared all files";
+            SelectedFilePath = null;
+            StatusMessage = "All files cleared.";
         }
 
         /// <summary>
@@ -375,13 +382,22 @@ namespace SeeSharpIndexer.ViewModels
             if (IsScanning)
                 return;
 
+            // Prepare UI for scanning
             IsScanning = true;
             ProgressValue = 0;
-            StatusMessage = "Scanning...";
+            StatusMessage = "Preparing to scan files...";
+            CurrentProcessingFileName = string.Empty;
 
             try
             {
                 var filePaths = Files.Where(f => f.IsSelected).Select(f => f.FilePath).ToList();
+                
+                if (filePaths.Count == 0)
+                {
+                    throw new InvalidOperationException("No files selected for scanning. Please select at least one file.");
+                }
+
+                StatusMessage = "Scanning files...";
                 _currentIndex = await _indexerService.CreateIndexAsync(filePaths, CodebaseName, CodebaseDescription);
                 StatusMessage = $"Scanning complete. Processed {_currentIndex.Files.Count} files.";
             }
@@ -393,6 +409,7 @@ namespace SeeSharpIndexer.ViewModels
             finally
             {
                 IsScanning = false;
+                CurrentProcessingFileName = string.Empty;
             }
         }
 
@@ -402,7 +419,10 @@ namespace SeeSharpIndexer.ViewModels
         private void SaveIndex()
         {
             if (_currentIndex == null)
+            {
+                System.Windows.MessageBox.Show("No index available to save. Please scan files first.", "Information", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 return;
+            }
 
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
@@ -503,7 +523,8 @@ namespace SeeSharpIndexer.ViewModels
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                StatusMessage = $"Processing: {Path.GetFileName(filePath)}";
+                CurrentProcessingFileName = Path.GetFileName(filePath);
+                StatusMessage = $"Processing: {CurrentProcessingFileName}";
             });
         }
 
@@ -519,11 +540,11 @@ namespace SeeSharpIndexer.ViewModels
         }
 
         /// <summary>
-        /// Determines if scanning can be started
+        /// Returns whether the scan command can be executed
         /// </summary>
         private bool CanScan()
         {
-            return !IsScanning && Files.Count > 0 && Files.Any(f => f.IsSelected);
+            return !IsScanning && Files.Any(f => f.IsSelected);
         }
     }
 } 

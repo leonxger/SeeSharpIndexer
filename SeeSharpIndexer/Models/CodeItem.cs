@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace SeeSharpIndexer.Models
 {
@@ -33,6 +34,13 @@ namespace SeeSharpIndexer.Models
         public FileItem()
         {
             Type = "File";
+        }
+
+        public FileItem(string filePath, bool isSelected) : this()
+        {
+            FilePath = filePath;
+            Name = Path.GetFileName(filePath);
+            IsSelected = isSelected;
         }
 
         [JsonProperty("classes")]

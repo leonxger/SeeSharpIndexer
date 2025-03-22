@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Media;
+using SeeSharpIndexer.Core;
+using SeeSharpIndexer.Models;
 
 namespace SeeSharpIndexer
 {
@@ -131,40 +133,50 @@ namespace SeeSharpIndexer
             LogMessage($"Codebase: {CodebasePathTextBox.Text}");
             LogMessage($"Output: {OutputPathTextBox.Text}");
 
-            // TODO: Connect to the actual indexing functionality once implemented
-            // For now, just simulate progress
-            
             try
             {
-                for (int i = 0; i <= 100; i += 5)
+                // Show initial progress
+                IndexingProgressBar.Value = 10;
+                LogMessage("Scanning codebase...");
+                
+                // Create the required components
+                var languageParser = new CSharpParser(); // Assuming this class exists
+                var serializer = new CborSerializer();
+                var tokenOptimizer = new TokenOptimizer(); // Assuming this class exists
+                
+                // Create the indexer
+                var indexer = new SeeSharpIndexer.Core.CodebaseIndexer(
+                    CodebasePathTextBox.Text,
+                    languageParser,
+                    serializer,
+                    tokenOptimizer);
+                
+                // Set up the output file path
+                string outputFilePath = Path.Combine(OutputPathTextBox.Text, "codebase_index.cbor");
+                
+                // Progress updates
+                IndexingProgressBar.Value = 30;
+                LogMessage("Analyzing C# files...");
+                await Task.Delay(100, cancellationToken); // Small delay for UI update
+                
+                IndexingProgressBar.Value = 60;
+                LogMessage("Processing codebase structure...");
+                await Task.Delay(100, cancellationToken); // Small delay for UI update
+                
+                // Perform the actual indexing
+                IndexingProgressBar.Value = 80;
+                LogMessage("Serializing to CBOR format...");
+                await indexer.IndexCodebaseAsync(outputFilePath);
+                
+                // Verify the file was created
+                if (File.Exists(outputFilePath))
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        break;
-
-                    // Update progress bar
-                    IndexingProgressBar.Value = i;
-                    
-                    if (i == 0)
-                        LogMessage("Scanning codebase...");
-                    else if (i == 20)
-                        LogMessage("Analyzing C# files...");
-                    else if (i == 40)
-                        LogMessage("Extracting class metadata...");
-                    else if (i == 60)
-                        LogMessage("Processing relationships...");
-                    else if (i == 80)
-                        LogMessage("Optimizing tokens...");
-                    else if (i == 100)
-                        LogMessage("Serializing to CBOR format...");
-
-                    // Simulate processing time
-                    await Task.Delay(300, cancellationToken);
-                }
-
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    string outputFilePath = Path.Combine(OutputPathTextBox.Text, "codebase_index.cbor");
+                    IndexingProgressBar.Value = 100;
                     LogMessage($"Indexing completed successfully! Output saved to: {outputFilePath}", true);
+                }
+                else
+                {
+                    throw new Exception("Failed to create CBOR file. The file was not found after indexing.");
                 }
             }
             catch (OperationCanceledException)

@@ -3,7 +3,7 @@
 ☕ **Enjoying SeeSharp Indexer?** [Buy me a coffee!](https://buymeacoffee.com/leonxger) Support the development of this project. Your contribution helps!
 
 <p align="center">
-  <img src="https://github.com/leonxger/SeeSharpIndexer/SeeSharpIndexer.png" alt="SeeSharp Indexer Logo" width="200">
+  <img src="SeeSharpIndexer.png" alt="SeeSharp Indexer Logo" width="200">
 </p>
 
 ## About

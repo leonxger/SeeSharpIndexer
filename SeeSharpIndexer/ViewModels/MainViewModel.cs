@@ -423,13 +423,21 @@ namespace SeeSharpIndexer.ViewModels
 
                 try
                 {
+                    // Set CompressOutput to false to ensure we save as plain JSON
+                    bool originalCompressSetting = _settings.CompressOutput;
+                    _settings.CompressOutput = false;
+                    
                     _indexerService.SaveIndex(_currentIndex, dialog.FileName);
+                    
+                    // Restore original setting
+                    _settings.CompressOutput = originalCompressSetting;
+                    
                     StatusMessage = $"Index saved to {dialog.FileName}";
                 }
                 catch (Exception ex)
                 {
                     StatusMessage = $"Error: {ex.Message}";
-                    System.Windows.MessageBox.Show(ex.Message, "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"Failed to save index: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 }
             }
         }
@@ -455,30 +463,42 @@ namespace SeeSharpIndexer.ViewModels
 
                 try
                 {
-                    _currentIndex = _indexerService.LoadIndex(dialog.FileName);
-                    if (_currentIndex != null)
+                    // First verify that the file is valid
+                    if (!File.Exists(dialog.FileName))
                     {
-                        CodebaseName = _currentIndex.Name;
-                        CodebaseDescription = _currentIndex.Description;
-                        
-                        // Clear existing files and add files from the index
-                        Files.Clear();
-                        foreach (var file in _currentIndex.Files)
-                        {
-                            Files.Add(file);
-                        }
+                        throw new FileNotFoundException($"File '{dialog.FileName}' not found.");
+                    }
 
-                        StatusMessage = $"Loaded index from {dialog.FileName}";
-                    }
-                    else
+                    if (new FileInfo(dialog.FileName).Length == 0)
                     {
-                        StatusMessage = "Failed to load index";
+                        throw new InvalidDataException("The file is empty.");
                     }
+
+                    var loadedIndex = _indexerService.LoadIndex(dialog.FileName);
+                    
+                    if (loadedIndex == null)
+                    {
+                        throw new InvalidDataException("Failed to deserialize the index file. The file may be corrupt or in an incompatible format.");
+                    }
+
+                    _currentIndex = loadedIndex;
+
+                    // Update UI
+                    CodebaseName = _currentIndex.Name;
+                    CodebaseDescription = _currentIndex.Description;
+                    Files.Clear();
+                    
+                    foreach (var file in _currentIndex.Files)
+                    {
+                        Files.Add(file);
+                    }
+
+                    StatusMessage = $"Index loaded from {dialog.FileName}";
                 }
                 catch (Exception ex)
                 {
                     StatusMessage = $"Error: {ex.Message}";
-                    System.Windows.MessageBox.Show(ex.Message, "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"Failed to load index: {ex.Message}", "Error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 }
             }
         }

@@ -41,12 +41,28 @@ namespace SeeSharpIndexer.Models
         /// </summary>
         public string ToJson(bool indented = false)
         {
-            return JsonConvert.SerializeObject(this, 
-                indented ? Formatting.Indented : Formatting.None, 
-                new JsonSerializerSettings 
+            try
+            {
+                return JsonConvert.SerializeObject(this, 
+                    indented ? Formatting.Indented : Formatting.None, 
+                    new JsonSerializerSettings 
+                    { 
+                        NullValueHandling = NullValueHandling.Ignore,
+                        DefaultValueHandling = DefaultValueHandling.Ignore,
+                        Error = (sender, args) => args.ErrorContext.Handled = true
+                    });
+            }
+            catch (Exception ex)
+            {
+                // In case of serialization error, return a valid JSON object with error information
+                return JsonConvert.SerializeObject(new 
                 { 
-                    NullValueHandling = NullValueHandling.Ignore 
-                });
+                    error = "Serialization error occurred", 
+                    message = ex.Message,
+                    name = this.Name,
+                    timestamp = DateTime.Now
+                }, Formatting.None);
+            }
         }
 
         /// <summary>
@@ -104,7 +120,8 @@ namespace SeeSharpIndexer.Models
             }
             else
             {
-                string json = ToJson(true);
+                // Always use minimized format for JSON files
+                string json = ToJson(false);
                 File.WriteAllText(filePath, json);
             }
         }
@@ -117,19 +134,63 @@ namespace SeeSharpIndexer.Models
             if (!File.Exists(filePath))
                 return null;
 
-            byte[] fileData = File.ReadAllBytes(filePath);
-
             try
             {
-                // Try to decompress (assuming it's compressed)
-                return FromCompressedJson(fileData);
+                byte[] fileData = File.ReadAllBytes(filePath);
+
+                try
+                {
+                    // Try to decompress (assuming it's compressed)
+                    return FromCompressedJson(fileData);
+                }
+                catch
+                {
+                    // If decompression fails, try reading as plain JSON
+                    string json = File.ReadAllText(filePath);
+                    
+                    // Validate JSON before parsing
+                    if (string.IsNullOrWhiteSpace(json) || !IsValidJson(json))
+                    {
+                        throw new InvalidDataException("The file does not contain valid JSON data.");
+                    }
+                    
+                    return FromJson(json);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                // If decompression fails, try reading as plain JSON
-                string json = File.ReadAllText(filePath);
-                return FromJson(json);
+                // Log or handle the error as appropriate
+                System.Diagnostics.Debug.WriteLine($"Error loading index file: {ex.Message}");
+                throw new InvalidDataException($"Failed to load index file: {ex.Message}", ex);
             }
+        }
+
+        /// <summary>
+        /// Checks if a string is valid JSON
+        /// </summary>
+        private static bool IsValidJson(string strInput)
+        {
+            if (string.IsNullOrWhiteSpace(strInput))
+                return false;
+                
+            strInput = strInput.Trim();
+            
+            // Valid JSON must start with either an object or array
+            if ((strInput.StartsWith("{") && strInput.EndsWith("}")) || 
+                (strInput.StartsWith("[") && strInput.EndsWith("]")))
+            {
+                try
+                {
+                    JsonConvert.DeserializeObject(strInput);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            
+            return false;
         }
     }
 } 

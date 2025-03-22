@@ -195,8 +195,8 @@
                                     <StackPanel>
                                         <TextBlock Text="Output Options" FontWeight="Bold" Margin="0 0 0 8"/>
                                         
-                                        <CheckBox Content="Compress output JSON"
-                                                  IsChecked="{Binding CompressOutput}"
+                                        <CheckBox Content="Minimize JSON to single line"
+                                                  IsChecked="{Binding MinimizeJson}"
                                                   Margin="0 8 0 0"/>
                                     </StackPanel>
                                 </materialDesign:Card>

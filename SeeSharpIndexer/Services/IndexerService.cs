@@ -83,7 +83,7 @@ namespace SeeSharpIndexer.Services
         /// </summary>
         public void SaveIndex(CodebaseIndex index, string filePath)
         {
-            index.SaveToFile(filePath, _settings.CompressOutput);
+            index.SaveToFile(filePath, _settings.MinimizeJson);
         }
 
         /// <summary>

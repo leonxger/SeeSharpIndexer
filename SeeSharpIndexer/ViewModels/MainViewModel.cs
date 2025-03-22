@@ -169,16 +169,16 @@ namespace SeeSharpIndexer.ViewModels
         }
 
         /// <summary>
-        /// Whether to compress the output JSON file
+        /// Whether to minimize the output JSON file to a single line
         /// </summary>
-        public bool CompressOutput
+        public bool MinimizeJson
         {
-            get => _settings.CompressOutput;
+            get => _settings.MinimizeJson;
             set
             {
-                if (_settings.CompressOutput != value)
+                if (_settings.MinimizeJson != value)
                 {
-                    _settings.CompressOutput = value;
+                    _settings.MinimizeJson = value;
                     _settings.Save();
                     OnPropertyChanged();
                 }
@@ -423,15 +423,8 @@ namespace SeeSharpIndexer.ViewModels
 
                 try
                 {
-                    // Set CompressOutput to false to ensure we save as plain JSON
-                    bool originalCompressSetting = _settings.CompressOutput;
-                    _settings.CompressOutput = false;
-                    
+                    // Don't override the user's setting
                     _indexerService.SaveIndex(_currentIndex, dialog.FileName);
-                    
-                    // Restore original setting
-                    _settings.CompressOutput = originalCompressSetting;
-                    
                     StatusMessage = $"Index saved to {dialog.FileName}";
                 }
                 catch (Exception ex)

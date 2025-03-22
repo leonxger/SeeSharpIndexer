@@ -48,15 +48,15 @@ namespace SeeSharpIndexer.Models
 
         #endregion
 
-        #region Compression Options
+        #region JSON Format Options
 
         /// <summary>
-        /// Whether to compress the output JSON file
+        /// Whether to minimize the output JSON file to a single line
         /// </summary>
-        public bool CompressOutput { get; set; } = true;
+        public bool MinimizeJson { get; set; } = true;
 
         /// <summary>
-        /// Whether to indent the JSON for readability (only applies when compression is disabled)
+        /// Whether to indent the JSON for readability (only applies when minimization is disabled)
         /// </summary>
         public bool IndentJson { get; set; } = true;
 

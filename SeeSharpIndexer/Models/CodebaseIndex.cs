@@ -2,7 +2,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Text;
 
 namespace SeeSharpIndexer.Models
@@ -74,56 +73,12 @@ namespace SeeSharpIndexer.Models
         }
 
         /// <summary>
-        /// Compresses the JSON representation using gzip
-        /// </summary>
-        public byte[] CompressJson()
-        {
-            string json = ToJson(false);
-            byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-
-            using var outputStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
-            {
-                gzipStream.Write(jsonBytes, 0, jsonBytes.Length);
-            }
-
-            return outputStream.ToArray();
-        }
-
-        /// <summary>
-        /// Decompresses a previously compressed JSON string
-        /// </summary>
-        public static CodebaseIndex? FromCompressedJson(byte[] compressedData)
-        {
-            using var inputStream = new MemoryStream(compressedData);
-            using var outputStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
-            {
-                gzipStream.CopyTo(outputStream);
-            }
-
-            byte[] decompressedBytes = outputStream.ToArray();
-            string json = Encoding.UTF8.GetString(decompressedBytes);
-
-            return FromJson(json);
-        }
-
-        /// <summary>
         /// Saves the index to a file
         /// </summary>
-        public void SaveToFile(string filePath, bool compress = true)
+        public void SaveToFile(string filePath, bool minimize = true)
         {
-            if (compress)
-            {
-                byte[] compressedData = CompressJson();
-                File.WriteAllBytes(filePath, compressedData);
-            }
-            else
-            {
-                // Always use minimized format for JSON files
-                string json = ToJson(false);
-                File.WriteAllText(filePath, json);
-            }
+            string json = ToJson(!minimize);
+            File.WriteAllText(filePath, json);
         }
 
         /// <summary>
@@ -136,26 +91,15 @@ namespace SeeSharpIndexer.Models
 
             try
             {
-                byte[] fileData = File.ReadAllBytes(filePath);
-
-                try
+                string json = File.ReadAllText(filePath);
+                
+                // Validate JSON before parsing
+                if (string.IsNullOrWhiteSpace(json) || !IsValidJson(json))
                 {
-                    // Try to decompress (assuming it's compressed)
-                    return FromCompressedJson(fileData);
+                    throw new InvalidDataException("The file does not contain valid JSON data.");
                 }
-                catch
-                {
-                    // If decompression fails, try reading as plain JSON
-                    string json = File.ReadAllText(filePath);
-                    
-                    // Validate JSON before parsing
-                    if (string.IsNullOrWhiteSpace(json) || !IsValidJson(json))
-                    {
-                        throw new InvalidDataException("The file does not contain valid JSON data.");
-                    }
-                    
-                    return FromJson(json);
-                }
+                
+                return FromJson(json);
             }
             catch (Exception ex)
             {

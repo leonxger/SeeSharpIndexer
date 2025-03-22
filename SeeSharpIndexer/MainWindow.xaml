@@ -5,8 +5,121 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SeeSharpIndexer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-
+        Title="SeeSharpIndexer" Height="500" Width="800"
+        Background="{StaticResource BackgroundBrush}"
+        Foreground="{StaticResource ForegroundBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="C# Codebase Indexer" 
+                   FontSize="24" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,20"
+                   HorizontalAlignment="Center"/>
+        
+        <!-- Codebase Folder Selection -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                       Text="Codebase Path:" 
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            
+            <TextBox Grid.Column="1" 
+                     x:Name="CodebasePathTextBox" 
+                     IsReadOnly="True"/>
+            
+            <Button Grid.Column="2" 
+                    x:Name="BrowseCodebaseButton" 
+                    Content="Browse..."
+                    Click="BrowseCodebaseButton_Click"/>
+        </Grid>
+        
+        <!-- Output Path Selection -->
+        <Grid Grid.Row="2" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                       Text="Output Path:" 
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            
+            <TextBox Grid.Column="1" 
+                     x:Name="OutputPathTextBox" 
+                     IsReadOnly="True"/>
+            
+            <Button Grid.Column="2" 
+                    x:Name="BrowseOutputButton" 
+                    Content="Browse..."
+                    Click="BrowseOutputButton_Click"/>
+        </Grid>
+        
+        <!-- Log Output -->
+        <Border Grid.Row="3" 
+                BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="1"
+                Margin="0,0,0,20">
+            <ScrollViewer>
+                <TextBox x:Name="LogTextBox" 
+                         IsReadOnly="True" 
+                         TextWrapping="Wrap"
+                         Background="{StaticResource SecondaryBackgroundBrush}"
+                         VerticalScrollBarVisibility="Auto"/>
+            </ScrollViewer>
+        </Border>
+        
+        <!-- Progress Bar -->
+        <Grid Grid.Row="4" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                       Text="Progress:" 
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            
+            <ProgressBar Grid.Column="1" 
+                         x:Name="IndexingProgressBar" 
+                         Minimum="0" 
+                         Maximum="100" 
+                         Height="20"/>
+        </Grid>
+        
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="5" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button x:Name="StartButton" 
+                    Content="Start Indexing" 
+                    Padding="15,8" 
+                    Margin="0,0,10,0"
+                    Click="StartButton_Click"/>
+            
+            <Button x:Name="CancelButton" 
+                    Content="Cancel" 
+                    Padding="15,8"
+                    IsEnabled="False"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
     </Grid>
 </Window>

@@ -1,7 +1,5 @@
 # SeeSharp Indexer
 
-☕ **Enjoying SeeSharp Indexer?** [Buy me a coffee!](https://buymeacoffee.com/leonxger) Support the development of this project. Your contribution helps!
-
 <p align="center">
   <img src="SeeSharpIndexer.png" alt="SeeSharp Indexer Logo" width="200">
 </p>
